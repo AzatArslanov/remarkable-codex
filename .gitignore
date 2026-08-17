@@ -1,0 +1,6 @@
+.DS_Store
+.env
+*.token
+dist/
+node_modules/
+work/

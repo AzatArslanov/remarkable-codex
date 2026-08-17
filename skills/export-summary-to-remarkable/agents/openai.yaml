@@ -1,0 +1,4 @@
+interface:
+  display_name: "Export Summary to reMarkable"
+  short_description: "Send concise summaries to reMarkable"
+  default_prompt: "Use $export-summary-to-remarkable to send this summary to my reMarkable."

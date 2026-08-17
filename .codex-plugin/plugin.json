@@ -1,0 +1,21 @@
+{
+  "name": "remarkable-summary-export",
+  "version": "0.1.0",
+  "description": "Export Codex summaries to reMarkable as editable notebooks or annotated documents.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Remarkable Summary Export",
+    "shortDescription": "Send Codex summaries to reMarkable.",
+    "longDescription": "Formats a Codex summary for paper, previews the result, and sends it through a configured reMarkable backend.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Summary formatting",
+      "reMarkable export"
+    ],
+    "defaultPrompt": "Export this conversation's summary to my reMarkable."
+  }
+}
