@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "remarkable-publish"
+version = "0.2.0"
+description = "Render Markdown as PDF and publish it to reMarkable"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Azat Arslanov" }]
+dependencies = ["pypdf==6.14.2", "reportlab==4.4.9"]
+
+[project.optional-dependencies]
+dev = []
+mcp = ["mcp==1.27.2"]
+
+[project.scripts]
+remarkable-publish = "remarkable_publish.cli:main"
+remarkable-publish-mcp = "remarkable_publish.mcp_server:main"
+remarkable-publish-mcp-docker = "remarkable_publish.docker_launcher:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

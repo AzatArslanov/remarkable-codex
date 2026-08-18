@@ -1,4 +1,4 @@
 interface:
-  display_name: "Export Summary to reMarkable"
-  short_description: "Send concise summaries to reMarkable"
-  default_prompt: "Use $export-summary-to-remarkable to send this summary to my reMarkable."
+  display_name: "Export Markdown to reMarkable"
+  short_description: "Render Markdown and publish it to reMarkable"
+  default_prompt: "Use $export-summary-to-remarkable to dry-run and upload this Markdown to my reMarkable library."

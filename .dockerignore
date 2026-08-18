@@ -1,0 +1,17 @@
+.git
+.github
+.venv
+__pycache__
+*.pyc
+artifacts
+.remarkable-state
+.remarkable-publish.toml
+build
+dist
+*.egg-info
+tests
+docs
+output
+tmp
+*.pdf
+*.docx

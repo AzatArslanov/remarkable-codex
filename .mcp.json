@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "remarkable-publisher": {
+      "command": "remarkable-publish-mcp-docker",
+      "args": ["serve"]
+    }
+  }
+}
