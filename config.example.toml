@@ -1,0 +1,9 @@
+[publish]
+backend = "dry-run"
+artifact_directory = "artifacts"
+state_directory = ".remarkable-state"
+import_roots = ["imports"]
+experimental_simple_upload = false
+
+# Secrets are never configuration values. In Docker, credentials and SQLite state
+# live in the remarkable-publish-state-v1 named volume.

@@ -1,21 +1,27 @@
 {
-  "name": "remarkable-summary-export",
-  "version": "0.1.0",
-  "description": "Export Codex summaries to reMarkable as editable notebooks or annotated documents.",
+  "name": "remarkable-codex",
+  "version": "0.2.0",
+  "description": "Render Markdown as PDF and upload it to the reMarkable library.",
   "author": {
-    "name": "Local developer"
+    "name": "Azat Arslanov"
   },
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Remarkable Summary Export",
-    "shortDescription": "Send Codex summaries to reMarkable.",
-    "longDescription": "Formats a Codex summary for paper, previews the result, and sends it through a configured reMarkable backend.",
-    "developerName": "Local developer",
+    "displayName": "reMarkable Publisher",
+    "shortDescription": "Publish Markdown to reMarkable.",
+    "longDescription": "Renders Markdown text or a UTF-8 file as a previewable PDF and uploads it to the reMarkable library, normally at the root.",
+    "developerName": "Azat Arslanov",
     "category": "Productivity",
     "capabilities": [
-      "Summary formatting",
+      "Markdown-to-PDF rendering",
+      "Idempotent library upload",
       "reMarkable export"
     ],
-    "defaultPrompt": "Export this conversation's summary to my reMarkable."
+    "defaultPrompt": [
+      "Publish this Markdown to my reMarkable.",
+      "Dry-run this text upload to my reMarkable library.",
+      "Send this Markdown file to my reMarkable library."
+    ]
   }
 }

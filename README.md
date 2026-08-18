@@ -1,32 +1,48 @@
-# reMarkable Summary Export
+# Markdown Publisher for reMarkable
 
-A Codex plugin project for turning task, research, and meeting summaries into paper-friendly documents and sending them to reMarkable.
+A local Codex plugin that accepts Markdown text or a UTF-8 text file, renders it as a paper-friendly PDF, and uploads that PDF to the reMarkable library. Uploads normally land in the library root.
 
-## Status
+Markdown is the only source contract and PDF is an internal artifact. There is no PDF import, format selection, artifact reuse input, notebook conversion, or silent format downgrade. Dry-run remains the default.
 
-The plugin manifest and first skill contract are scaffolded. No live upload is performed yet.
+## Install and build
 
-## Proposed MVP
+Requirements: Docker and Python 3.11 or newer.
 
-1. Format the current Codex summary as Markdown.
-2. Preview the title, destination folder, and output type.
-3. Call a local export adapter.
-4. Support native notebook export through RCU first.
-5. Add PDF upload as a fallback.
-
-The backend is deliberately separated from the skill so a future official reMarkable API can replace the initial adapter without changing the user-facing workflow.
-
-## Project structure
-
-```text
-.codex-plugin/plugin.json
-skills/export-summary-to-remarkable/
-  SKILL.md
-  agents/openai.yaml
-  references/backends.md
-scripts/
+```bash
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install -e .
+remarkable-publish-mcp-docker build
 ```
 
-## Next implementation step
+The launcher mounts one writable artifact directory, approved read-only Markdown import roots, and a protected named volume for the device credential and successful-upload ledger.
 
-Create the `remarkable-summary-export` CLI, define a local configuration schema, and add a dry-run mode that produces the final Markdown without uploading it.
+## Operations
+
+```bash
+remarkable-publish-mcp-docker status
+remarkable-publish-mcp-docker auth login
+remarkable-publish-mcp-docker auth status
+remarkable-publish-mcp-docker auth revoke
+remarkable-publish-mcp-docker serve
+```
+
+The MCP exposes only `upload_markdown`. It accepts exactly one of `markdownText` or `filePath`, plus `title`, `dryRun=true`, and `confirmUpload=false`. A regular file is decoded as UTF-8 and treated as Markdown regardless of its extension. HTTP(S) and mailto Markdown links become PDF links. Input containing glyphs unavailable in the embedded fonts is rejected instead of producing a silently corrupted PDF. The tool renders and preserves a content-addressed PDF before any upload.
+
+A live call requires `confirmUpload=true`, `REMARKABLE_BACKEND=simple-upload`, and `REMARKABLE_EXPERIMENTAL_SIMPLE_UPLOAD=1`. The observed endpoint normally imports into the library root.
+
+Only non-secret runtime options may be passed in the environment. Device credentials remain in the protected volume and exchanged user tokens remain in memory.
+
+## Idempotency
+
+The idempotency key is derived from the rendered PDF SHA-256 and title. A state-volume lock serializes live uploads, and after a recognized successful response the local SQLite ledger suppresses an exact retry without another upload. This is installation-local protection: it cannot detect uploads made by another installation or after ledger loss. If delivery is confirmed but the ledger cannot record it, the result says that delivery is confirmed and that retrying is unsafe.
+
+## Development and verification
+
+```bash
+PYTHONPATH=src python3 -m unittest discover -s tests -v
+python3 -m compileall -q src tests scripts
+docker build --pull --tag remarkable-codex-mcp:0.2.0 .
+```
+
+Unit tests are offline. A real-account test requires explicit confirmation and synthetic Markdown content. No generated PDF, credential, response capture, or state database belongs in version control.

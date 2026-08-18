@@ -1,38 +1,35 @@
 ---
 name: export-summary-to-remarkable
-description: Format and export concise summaries from Codex to a reMarkable tablet. Use when the user asks to send, save, publish, or export a conversation summary, research brief, meeting recap, or Markdown note to reMarkable.
+description: Render Markdown text or a UTF-8 text file as PDF and upload it to the reMarkable library. Use when the user asks to preview, dry-run, send, export, upload, or publish text, notes, summaries, reports, investigation results, or text files to reMarkable.
 ---
 
-# Export Summary to reMarkable
+# Export Markdown to reMarkable
 
-Create a paper-friendly Markdown summary, preview the exact content and destination, then invoke the configured export backend.
+## Prepare the request
 
-## Workflow
+- Treat plain text and every UTF-8 text file as Markdown, regardless of filename extension.
+- Use `markdownText` for content from the conversation or content already loaded into context. Use `filePath` for a local file. Pass exactly one; never pass a PDF or an artifact ID.
+- Use the requested title. If omitted, infer it from the first Markdown H1, then the filename stem. Ask only when neither yields a useful title.
+- Simple uploads normally land in the library root.
 
-1. Identify the source material and intended title. Default to the current task summary.
-2. Produce a concise document with a title, date, key points, decisions, and next actions when those sections apply.
-3. Avoid wide tables, deeply nested lists, raw URLs, and long unbroken code blocks.
-4. Ask for missing destination details only when they materially affect the result. Otherwise use the configured default folder.
-5. Show the title, destination, output type, and a short content preview before the first external upload.
-6. Obtain confirmation before sending unless the user's current request explicitly says to export or send now.
-7. Invoke the configured backend and report the returned document identifier or a clear failure reason.
+## Publish
 
-## Output types
+1. Call `upload_markdown` with `dryRun=true`.
+2. On success, report the title plus the preserved PDF artifact path and SHA-256. State clearly that nothing was uploaded.
+3. If the user already said to send, upload, export, or publish now, that is explicit live intent. Otherwise ask for confirmation after the dry-run.
+4. Call `upload_markdown` again with the same source and title, setting `dryRun=false` and `confirmUpload=true`.
+5. Report delivery only when `ok=true`. Include the remote title, whether the result was a locally suppressed retry, any response-supplied remote document ID, and the preserved artifact path.
+6. On failure, report `errorStage`, `errorCode`, the sanitized message, and the preserved artifact path. Do not claim partial or probable delivery. When `deliveryStatus=confirmed` and `retrySafe=false`, report that delivery was confirmed but local retry suppression failed, and do not retry automatically.
 
-- Prefer `notebook` when the configured backend supports editable native text.
-- Use `pdf` when layout fidelity matters more than editable text.
-- Never describe a PDF or EPUB as an editable notebook.
+If a file changes after the dry-run, perform a new dry-run and treat it as a new publish intent. Exact retries require identical source content and title.
 
-## Backend rules
+## Guardrails
 
-- Read [references/backends.md](references/backends.md) when selecting or configuring a backend.
-- Prefer a documented local or user-controlled transport.
-- Treat reMarkable cloud endpoints as private and unstable unless reMarkable publishes an API contract.
-- Never print, commit, or place authentication tokens in generated documents.
-- Do not silently fall back from `notebook` to `pdf`; disclose the change and obtain consent.
+- Dry-run is always the first call, including when live intent is already explicit.
+- Do not select another source or output format, pass through a PDF, or reuse a generated artifact as input.
+- Do not silently turn a file decoding or rendering failure into another format.
+- Do not retry a result with `retrySafe=false`, even when `ok=false`.
+- Never expose credentials, authorization headers, private response bodies, signed URLs, account listings, or document bodies returned by tools.
+- Local idempotency cannot detect uploads made by another installation or after ledger loss.
 
-## Failure handling
-
-- Preserve the generated summary if conversion or upload fails.
-- Make retries idempotent where the backend permits it.
-- Report whether failure occurred during formatting, conversion, authentication, upload, or sync.
+Read [references/backends.md](references/backends.md) when configuring live mode.

@@ -1,37 +1,10 @@
-# Export backends
+# Backend selection
 
-## Recommended MVP: local adapter
+Use `upload_markdown`.
 
-Implement a small command-line adapter with this contract:
+- `dry-run` renders and preserves the PDF without network access.
+- `simple-upload` posts one PDF to the private observed import endpoint and requires `REMARKABLE_EXPERIMENTAL_SIMPLE_UPLOAD=1`, a stored device credential, explicit live intent, and `confirmUpload=true`.
 
-```text
-remarkable-summary-export send \
-  --input summary.md \
-  --title "Project summary" \
-  --folder "Codex/Summaries" \
-  --format notebook
-```
+The endpoint is observed behavior, not an official publishing API. Uploads normally land in the library root. Success requires HTTP 2xx JSON containing a non-empty `docID` and a valid 64-character lowercase hexadecimal `hash`. Authentication, transport, or response-validation failures must be classified and leave the rendered PDF available.
 
-Return JSON on standard output:
-
-```json
-{"ok":true,"documentId":"...","title":"Project summary","format":"notebook"}
-```
-
-Read credentials from the operating-system credential store or an ignored configuration file. Never accept secrets as ordinary command-line arguments.
-
-## Native notebook transport
-
-Use a local tool capable of converting Markdown to native reMarkable typed text. RCU currently offers this capability and avoids depending on an undocumented cloud conversion endpoint. Keep RCU behind an adapter so it can be replaced later.
-
-## PDF transport
-
-Convert Markdown to PDF with Pandoc, then upload through a configured local or cloud client. PDF is annotatable but its underlying text is not editable as notebook text.
-
-## Private cloud transport
-
-The reMarkable web and desktop clients use private cloud endpoints. Community clients can upload PDF and EPUB, but the API has no supported stability or compatibility guarantee. Require an explicit opt-in setting for this backend and isolate it behind the same adapter contract.
-
-## Browser conversion
-
-Pandoc can convert Markdown to DOCX and reMarkable Connect can convert Word documents to notebooks in the web app. Until a public API exists, this path requires interactive use or browser automation and should not be the default unattended backend.
+The local ledger and state-volume lock suppress exact successful retries using the rendered PDF SHA-256 and title. They cannot detect uploads made by another installation or after ledger loss. A result with `deliveryStatus=confirmed` and `retrySafe=false` means the endpoint confirmed delivery but the local success record failed; do not retry it automatically.
