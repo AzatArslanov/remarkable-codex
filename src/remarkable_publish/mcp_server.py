@@ -3,16 +3,17 @@ from __future__ import annotations
 from pathlib import Path
 
 from .config import load_settings
+from .docker_launcher import UPLOAD_TOOL_DESCRIPTION
 from .mcp_tools import RemarkableTools, tool_contracts
 
 
 _active_tools: RemarkableTools | None = None
 
 
-def upload_markdown_handler(title: str, markdownText: str | None = None, filePath: str | None = None, dryRun: bool = True, confirmUpload: bool = False) -> dict:
+def upload_markdown_handler(title: str, markdownText: str | None = None, filePath: str | None = None) -> dict:
     if _active_tools is None:
         raise RuntimeError("MCP server is not initialized")
-    return _active_tools.upload_markdown(title=title, markdown_text=markdownText, file_path=filePath, dry_run=dryRun, confirm_upload=confirmUpload)
+    return _active_tools.upload_markdown(title=title, markdown_text=markdownText, file_path=filePath)
 
 
 def build_server():
@@ -26,7 +27,7 @@ def build_server():
     server = FastMCP("remarkable-publisher")
     server.tool(
         name="upload_markdown",
-        description="Render Markdown text or a UTF-8 file as PDF and upload it to the reMarkable library. Dry-run is the default.",
+        description=UPLOAD_TOOL_DESCRIPTION,
         annotations=ToolAnnotations(**tool_contracts()["upload_markdown"]),
     )(upload_markdown_handler)
     return server

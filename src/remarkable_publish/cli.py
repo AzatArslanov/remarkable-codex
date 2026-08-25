@@ -7,6 +7,7 @@ from pathlib import Path
 import tomllib
 
 from . import __version__
+from .artifacts import read_markdown_file
 from .config import Settings, load_settings
 from .credentials import CredentialStore
 from .mcp_tools import RemarkableTools
@@ -24,8 +25,6 @@ def _parser() -> argparse.ArgumentParser:
     upload = commands.add_parser("upload", help="render and upload one UTF-8 Markdown file")
     upload.add_argument("input", type=Path)
     upload.add_argument("--title", required=True)
-    upload.add_argument("--live", action="store_true")
-    upload.add_argument("--confirm-upload", action="store_true")
     return parser
 
 
@@ -64,10 +63,14 @@ def run(argv: list[str] | None = None) -> int:
         except (OSError, ValueError, AuthenticationFailure):
             _error("authentication", "device-pairing-failed", "device pairing failed")
             return 1
+    try:
+        markdown_text = read_markdown_file(args.input)
+    except (OSError, ValueError) as error:
+        _error("input", "invalid-publish-request", str(error))
+        return 1
     result = RemarkableTools.from_settings(settings).upload_markdown(
-        file_path=str(args.input), title=args.title,
-        dry_run=not args.live,
-        confirm_upload=args.confirm_upload,
+        markdown_text=markdown_text,
+        title=args.title,
     )
     _print(result)
     return 0 if result["ok"] else 1

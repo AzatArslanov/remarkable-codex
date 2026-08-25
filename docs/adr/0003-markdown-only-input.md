@@ -5,7 +5,7 @@
 
 ## Decision
 
-Expose one MCP operation, `upload_markdown`, accepting exactly one inline Markdown string or approved-root UTF-8 file. Treat file contents as Markdown regardless of extension. Render every accepted source to a deterministic, content-addressed PDF and pass only that artifact to the existing publisher boundary.
+Expose one MCP operation, `upload_markdown`, accepting exactly one inline Markdown string or host-staged UTF-8 file. Treat file contents as Markdown regardless of extension. Render every accepted source to a deterministic, content-addressed PDF and pass only that artifact to the existing publisher boundary. ADR 0007 defines the host-path staging boundary.
 
 Operational status is available through the local `doctor` command.
 

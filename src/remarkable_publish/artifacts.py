@@ -28,6 +28,14 @@ PDF_MIME = "application/pdf"
 MAX_MARKDOWN_BYTES = 10 * 1024 * 1024
 MAX_PDF_BYTES = 100 * 1024 * 1024
 _LINK = re.compile(r"\[([^\]\n]+)\]\(([^)\s]+)\)")
+_COMMON_SYMBOLS = frozenset("←→↔⇒⇔")
+
+
+def _with_symbol_fallback(value: str) -> str:
+    return "".join(
+        f'<font name="Symbol">{character}</font>' if character in _COMMON_SYMBOLS else character
+        for character in value
+    )
 
 
 def validate_pdf(path: Path) -> None:
@@ -67,7 +75,8 @@ def _styled_text(value: str) -> str:
     value = escape(value)
     value = re.sub(r"`([^`]+)`", r'<font name="RemarkableVeraMono">\1</font>', value)
     value = re.sub(r"\*\*([^*]+)\*\*|__([^_]+)__", lambda match: f"<b>{match.group(1) or match.group(2)}</b>", value)
-    return re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_)", lambda match: f"<i>{match.group(1) or match.group(2)}</i>", value)
+    value = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)|(?<!_)_([^_]+)_(?!_)", lambda match: f"<i>{match.group(1) or match.group(2)}</i>", value)
+    return _with_symbol_fallback(value)
 
 
 def _inline(value: str) -> str:
@@ -99,13 +108,14 @@ def _validate_font_coverage(markdown_text: str, font_names: tuple[str, ...]) -> 
             ord(character)
             for character in markdown_text
             if character not in "\r\n\t"
+            and character not in _COMMON_SYMBOLS
             and not all(ord(character) in character_map for character_map in coverage)
         }
     )
     if unsupported:
         sample = ", ".join(f"U+{codepoint:04X}" for codepoint in unsupported[:8])
         suffix = " and more" if len(unsupported) > 8 else ""
-        raise ValueError(f"Markdown contains characters unsupported by embedded PDF fonts: {sample}{suffix}")
+        raise ValueError(f"Markdown contains characters unsupported by the PDF renderer font set: {sample}{suffix}")
 
 
 def _table(lines: list[str], body_style: ParagraphStyle) -> Table:
@@ -156,7 +166,7 @@ def render_markdown_pdf(markdown_text: str) -> bytes:
             while index < len(lines) and not lines[index].strip().startswith("```"):
                 block.append(lines[index])
                 index += 1
-            story.append(XPreformatted(escape("\n".join(block)), code))
+            story.append(XPreformatted(_with_symbol_fallback(escape("\n".join(block))), code))
         elif not stripped:
             flush()
         elif match := re.match(r"^(#{1,6})\s+(.+)$", stripped):
@@ -206,6 +216,28 @@ def render_markdown_pdf(markdown_text: str) -> bytes:
     return output.getvalue()
 
 
+def read_markdown_file(path: Path) -> str:
+    candidate = path.expanduser()
+    descriptor: int | None = None
+    try:
+        flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(candidate, flags)
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise ValueError("Markdown path must identify a regular file")
+        with os.fdopen(descriptor, "rb") as handle:
+            descriptor = None
+            encoded = handle.read(MAX_MARKDOWN_BYTES + 1)
+        if len(encoded) > MAX_MARKDOWN_BYTES:
+            raise ValueError("Markdown source must be no larger than 10 MB")
+        return encoded.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError("file is not valid UTF-8 Markdown") from error
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
 class ArtifactStore:
     def __init__(self, root: Path, *, host_root: Path | None = None, import_roots: tuple[Path, ...] = (), import_host_roots: tuple[Path, ...] = ()) -> None:
         if import_host_roots and len(import_host_roots) != len(import_roots):
@@ -251,23 +283,8 @@ class ArtifactStore:
     def render_markdown_file(self, path: Path) -> RenderedArtifact:
         candidate = self._map_host_import(path).expanduser().resolve()
         if not any(candidate.is_relative_to(root) for root in self.import_roots):
-            raise ValueError("Markdown path is outside every approved import root")
-        descriptor: int | None = None
-        try:
-            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-            descriptor = os.open(candidate, flags)
-            metadata = os.fstat(descriptor)
-            if not stat.S_ISREG(metadata.st_mode):
-                raise ValueError("Markdown path must identify a regular file")
-            with os.fdopen(descriptor, "rb") as handle:
-                descriptor = None
-                encoded = handle.read(MAX_MARKDOWN_BYTES + 1)
-            if len(encoded) > MAX_MARKDOWN_BYTES:
-                raise ValueError("Markdown source must be no larger than 10 MB")
-            source = encoded.decode("utf-8")
-        except UnicodeDecodeError as error:
-            raise ValueError("file is not valid UTF-8 Markdown") from error
-        finally:
-            if descriptor is not None:
-                os.close(descriptor)
-        return self.render_markdown(source)
+            raise ValueError(
+                "Markdown path is outside the approved import roots; if the source content is "
+                "already available, resubmit it with markdownText instead of filePath"
+            )
+        return self.render_markdown(read_markdown_file(candidate))

@@ -1,6 +1,6 @@
 {
   "name": "remarkable-codex",
-  "version": "0.2.0",
+  "version": "0.3.0+codex.20260819154401",
   "description": "Render Markdown as PDF and upload it to the reMarkable library.",
   "author": {
     "name": "Azat Arslanov"
@@ -10,7 +10,7 @@
   "interface": {
     "displayName": "reMarkable Publisher",
     "shortDescription": "Publish Markdown to reMarkable.",
-    "longDescription": "Renders Markdown text or a UTF-8 file as a previewable PDF and uploads it to the reMarkable library, normally at the root.",
+    "longDescription": "Renders Markdown as a paper-friendly PDF and publishes it through the plugin's bundled reMarkable MCP server with idempotent retry handling.",
     "developerName": "Azat Arslanov",
     "category": "Productivity",
     "capabilities": [
@@ -20,7 +20,7 @@
     ],
     "defaultPrompt": [
       "Publish this Markdown to my reMarkable.",
-      "Dry-run this text upload to my reMarkable library.",
+      "Export these notes to my reMarkable library.",
       "Send this Markdown file to my reMarkable library."
     ]
   }

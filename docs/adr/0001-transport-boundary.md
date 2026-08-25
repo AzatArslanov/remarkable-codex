@@ -1,6 +1,6 @@
 # ADR 0001: Isolate the upload transport
 
-- Status: accepted
+- Status: superseded by ADR 0005
 - Date checked: 2026-08-18
 
 ## Context

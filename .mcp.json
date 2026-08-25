@@ -1,8 +1,9 @@
 {
   "mcpServers": {
     "remarkable-publisher": {
-      "command": "remarkable-publish-mcp-docker",
-      "args": ["serve"]
+      "command": "python3",
+      "args": ["src/remarkable_publish/docker_launcher.py", "serve"],
+      "cwd": "."
     }
   }
 }
