@@ -64,19 +64,19 @@ class McpContractTests(unittest.TestCase):
 
     def test_schema_exposes_only_simple_upload_inputs(self) -> None:
         parameters = inspect.signature(upload_markdown_handler).parameters
-        self.assertEqual(set(parameters), {"title", "markdownText", "filePath", "dryRun", "confirmUpload"})
+        self.assertEqual(set(parameters), {"title", "markdownText", "filePath"})
         self.assertEqual(set(tool_contracts()), {"upload_markdown"})
 
-    def test_text_defaults_to_rendered_pdf_dry_run_without_network(self) -> None:
+    def test_text_is_rendered_and_published_in_one_call(self) -> None:
         with TemporaryDirectory() as directory:
             publisher = FakePublisher()
             source = "# Brief\n\nHello **paper**. PRIVATE-BODY"
             result = self._tools(Path(directory), publisher=publisher).upload_markdown(markdown_text=source, title="Brief")
             self.assertTrue(result["ok"])
-            self.assertEqual(result["backend"], "dry-run")
+            self.assertEqual(result["backend"], "simple-upload")
             self.assertEqual(result["artifactMimeType"], "application/pdf")
             self.assertTrue(Path(result["artifactPath"]).is_file())
-            self.assertEqual(publisher.requests, [])
+            self.assertEqual(len(publisher.requests), 1)
             self.assertNotIn("PRIVATE-BODY", str(result))
 
     def test_file_is_always_read_as_utf8_markdown_regardless_of_suffix(self) -> None:
@@ -96,21 +96,20 @@ class McpContractTests(unittest.TestCase):
             self.assertEqual(tools.upload_markdown(title="Brief")["errorCode"], "invalid-publish-request")
             self.assertEqual(tools.upload_markdown(markdown_text="hello", file_path="hello.md", title="Brief")["errorCode"], "invalid-publish-request")
 
-    def test_live_upload_requires_confirmation_and_simple_upload_opt_in(self) -> None:
+    def test_missing_publisher_is_a_classified_configuration_failure(self) -> None:
         with TemporaryDirectory() as directory:
             tools = self._tools(Path(directory))
-            self.assertEqual(tools.upload_markdown(markdown_text="hello", title="Brief", dry_run=False)["errorCode"], "confirmation-required")
-            result = tools.upload_markdown(markdown_text="hello", title="Brief", dry_run=False, confirm_upload=True)
-            self.assertEqual(result["errorCode"], "simple-upload-disabled")
+            result = tools.upload_markdown(markdown_text="hello", title="Brief")
+            self.assertEqual(result["errorCode"], "simple-upload-unavailable")
 
     def test_successful_exact_retry_is_suppressed_locally(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
             publisher = FakePublisher()
-            settings = Settings(backend="simple-upload", experimental_simple_upload=True, artifact_directory=root / "artifacts", state_directory=root / "state", import_roots=(root,))
+            settings = Settings(artifact_directory=root / "artifacts", state_directory=root / "state", import_roots=(root,))
             tools = self._tools(root, settings=settings, publisher=publisher)
-            first = tools.upload_markdown(markdown_text="# Brief", title="Brief", dry_run=False, confirm_upload=True)
-            second = tools.upload_markdown(markdown_text="# Brief", title="Brief", dry_run=False, confirm_upload=True)
+            first = tools.upload_markdown(markdown_text="# Brief", title="Brief")
+            second = tools.upload_markdown(markdown_text="# Brief", title="Brief")
             self.assertTrue(first["ok"] and second["ok"])
             self.assertEqual(len(publisher.requests), 1)
             self.assertTrue(second["idempotencyReplay"])
@@ -120,15 +119,14 @@ class McpContractTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             publisher = SlowPublisher()
-            settings = Settings(backend="simple-upload", experimental_simple_upload=True, artifact_directory=root / "artifacts", state_directory=root / "state")
+            settings = Settings(artifact_directory=root / "artifacts", state_directory=root / "state")
             tools = self._tools(root, settings=settings, publisher=publisher)
-            tools.upload_markdown(markdown_text="# Warmup", title="Warmup")
             start = Barrier(3)
             results = []
 
             def publish() -> None:
                 start.wait()
-                results.append(tools.upload_markdown(markdown_text="# Same", title="Same", dry_run=False, confirm_upload=True))
+                results.append(tools.upload_markdown(markdown_text="# Same", title="Same"))
 
             threads = [Thread(target=publish), Thread(target=publish)]
             for thread in threads:
@@ -148,8 +146,8 @@ class McpContractTests(unittest.TestCase):
             state.mkdir()
             (state / "state.sqlite3").write_bytes(b"not sqlite")
             publisher = FakePublisher()
-            settings = Settings(backend="simple-upload", experimental_simple_upload=True, artifact_directory=root / "artifacts", state_directory=state)
-            result = self._tools(root, settings=settings, publisher=publisher).upload_markdown(markdown_text="# Brief", title="Brief", dry_run=False, confirm_upload=True)
+            settings = Settings(artifact_directory=root / "artifacts", state_directory=state)
+            result = self._tools(root, settings=settings, publisher=publisher).upload_markdown(markdown_text="# Brief", title="Brief")
 
             self.assertFalse(result["ok"])
             self.assertEqual(result["errorStage"], "configuration")
@@ -162,7 +160,7 @@ class McpContractTests(unittest.TestCase):
             root = Path(directory)
             state = root / "state"
             publisher = FakePublisher()
-            settings = Settings(backend="simple-upload", experimental_simple_upload=True, artifact_directory=root / "artifacts", state_directory=state)
+            settings = Settings(artifact_directory=root / "artifacts", state_directory=state)
             tools = RemarkableTools(
                 settings=settings,
                 artifacts=ArtifactStore(root / "artifacts"),
@@ -170,7 +168,7 @@ class McpContractTests(unittest.TestCase):
                 ledger=FailingRecordLedger(state / "state.sqlite3"),
                 live_publisher=publisher,
             )
-            result = tools.upload_markdown(markdown_text="# Brief", title="Brief", dry_run=False, confirm_upload=True)
+            result = tools.upload_markdown(markdown_text="# Brief", title="Brief")
 
             self.assertFalse(result["ok"])
             self.assertEqual(result["errorStage"], "state")
@@ -184,8 +182,8 @@ class McpContractTests(unittest.TestCase):
         with TemporaryDirectory() as directory:
             root = Path(directory)
             publisher = FakePublisher(fail=True)
-            settings = Settings(backend="simple-upload", experimental_simple_upload=True, artifact_directory=root / "artifacts", state_directory=root / "state", import_roots=(root,))
-            result = self._tools(root, settings=settings, publisher=publisher).upload_markdown(markdown_text="# Brief\nPRIVATE-BODY", title="Brief", dry_run=False, confirm_upload=True)
+            settings = Settings(artifact_directory=root / "artifacts", state_directory=root / "state", import_roots=(root,))
+            result = self._tools(root, settings=settings, publisher=publisher).upload_markdown(markdown_text="# Brief\nPRIVATE-BODY", title="Brief")
             self.assertFalse(result["ok"])
             self.assertEqual(result["errorCode"], "simple-upload-failed")
             self.assertTrue(Path(result["artifactPath"]).is_file())

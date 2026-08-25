@@ -16,7 +16,7 @@ RUN apt-get update \
 
 COPY --from=wheel-builder /wheels /wheels
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels \
-        "remarkable-publish[mcp]==0.2.0" \
+        "remarkable-publish[mcp]==0.3.0" \
     && rm -rf /wheels \
     && useradd --uid 65532 --user-group --no-create-home --shell /usr/sbin/nologin remarkable
 
@@ -25,7 +25,7 @@ WORKDIR /var/lib/remarkable-publish
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     HOME=/tmp \
-    REMARKABLE_IMAGE_VERSION=0.2.0 \
+    REMARKABLE_IMAGE_VERSION=0.3.0 \
     REMARKABLE_ARTIFACT_DIR=/artifacts \
     REMARKABLE_STATE_DIR=/var/lib/remarkable-publish
 

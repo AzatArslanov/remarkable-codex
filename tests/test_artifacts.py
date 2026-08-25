@@ -7,10 +7,17 @@ import unittest
 
 from pypdf import PdfReader
 
-from remarkable_publish.artifacts import ArtifactStore, PDF_MIME
+from remarkable_publish.artifacts import ArtifactStore, PDF_MIME, read_markdown_file
 
 
 class ArtifactTests(unittest.TestCase):
+    def test_host_markdown_reader_accepts_a_regular_file_without_import_roots(self) -> None:
+        with TemporaryDirectory() as directory:
+            source = Path(directory) / "report.anything"
+            source.write_text("# Anywhere", encoding="utf-8")
+
+            self.assertEqual(read_markdown_file(source), "# Anywhere")
+
     def test_markdown_is_rendered_to_a_content_addressed_pdf(self) -> None:
         with TemporaryDirectory() as directory:
             store = ArtifactStore(Path(directory) / "artifacts", host_root=Path("/host/artifacts"))
@@ -52,6 +59,35 @@ class ArtifactTests(unittest.TestCase):
             )
             self.assertIn("Résumé — café", rendered)
 
+    def test_long_investigation_fixture_renders_common_arrows_and_tables(self) -> None:
+        source = (Path(__file__).parent / "fixtures" / "long-investigation.md").read_text(
+            encoding="utf-8"
+        )
+        with TemporaryDirectory() as directory:
+            store = ArtifactStore(Path(directory) / "artifacts")
+            first = store.render_markdown(source)
+            second = store.render_markdown(source)
+            rendered = "".join(
+                page.extract_text() or "" for page in PdfReader(first.internal_path).pages
+            )
+
+            self.assertEqual(first.sha256, second.sha256)
+            self.assertGreaterEqual(len(PdfReader(first.internal_path).pages), 2)
+            self.assertIn("signal → decision → action", rendered)
+            self.assertIn("Workflow", rendered)
+
+    def test_common_arrows_render_inside_fenced_code(self) -> None:
+        with TemporaryDirectory() as directory:
+            artifact = ArtifactStore(Path(directory) / "artifacts").render_markdown(
+                "```text\nsignal → decision ⇒ action\n```"
+            )
+            rendered = "".join(
+                page.extract_text() or "" for page in PdfReader(artifact.internal_path).pages
+            )
+
+            self.assertIn("signal → decision ⇒ action", rendered)
+            self.assertNotIn("\x00", rendered)
+
     def test_unsupported_unicode_is_rejected_instead_of_silently_losing_glyphs(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory) / "artifacts"
@@ -72,7 +108,7 @@ class ArtifactTests(unittest.TestCase):
             invalid.write_bytes(b"\xff")
             store = ArtifactStore(root / "artifacts", import_roots=(allowed,))
             self.assertEqual(store.render_markdown_file(inside).mime_type, PDF_MIME)
-            with self.assertRaisesRegex(ValueError, "approved import root"):
+            with self.assertRaisesRegex(ValueError, "resubmit.*markdownText"):
                 store.render_markdown_file(outside)
             with self.assertRaisesRegex(ValueError, "UTF-8 Markdown"):
                 store.render_markdown_file(invalid)

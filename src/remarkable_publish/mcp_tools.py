@@ -8,6 +8,7 @@ from .artifacts import ArtifactStore
 from .config import Settings
 from .credentials import CredentialStore
 from .domain import LivePublishRequest, RenderedArtifact, publish_key
+from .docker_launcher import UPLOAD_TOOL_ANNOTATIONS, UPLOAD_TOOL_NAME
 from .ports import LivePublisher
 from .private_auth import PrivateAuthHttp, UserTokenProvider
 from .simple_upload import SimpleUploadPublisher, UrllibSimpleUploadTransport
@@ -15,7 +16,7 @@ from .state import IdempotencyLedger, StateFailure
 
 
 def tool_contracts() -> dict[str, dict[str, bool]]:
-    return {"upload_markdown": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": True}}
+    return {UPLOAD_TOOL_NAME: dict(UPLOAD_TOOL_ANNOTATIONS)}
 
 
 def _artifact_dict(artifact: RenderedArtifact) -> dict[str, Any]:
@@ -41,23 +42,19 @@ class RemarkableTools:
     def from_settings(cls, settings: Settings, *, artifacts: ArtifactStore | None = None) -> "RemarkableTools":
         store = artifacts or ArtifactStore(settings.artifact_directory, host_root=settings.artifact_host_directory, import_roots=settings.import_roots, import_host_roots=settings.import_host_roots)
         credentials = CredentialStore(settings.state_directory)
-        publisher: LivePublisher | None = None
-        if settings.backend == "simple-upload" and settings.experimental_simple_upload:
-            publisher = SimpleUploadPublisher(UserTokenProvider(credentials, PrivateAuthHttp()), UrllibSimpleUploadTransport())
+        publisher = SimpleUploadPublisher(UserTokenProvider(credentials, PrivateAuthHttp()), UrllibSimpleUploadTransport())
         return cls(settings=settings, artifacts=store, credentials=credentials, ledger=IdempotencyLedger(settings.state_directory / "state.sqlite3"), live_publisher=publisher)
 
     def status(self) -> dict[str, Any]:
-        enabled = self.settings.backend == "simple-upload" and self.settings.experimental_simple_upload
         return {
             "ok": True,
-            "backend": self.settings.backend,
+            "backend": "simple-upload",
             "authenticated": self.credentials.is_authenticated,
-            "experimentalSimpleUpload": self.settings.experimental_simple_upload,
-            "markdownUpload": "available" if enabled and self.credentials.is_authenticated else "credential-missing" if enabled else "disabled",
+            "markdownUpload": "available" if self.credentials.is_authenticated else "credential-missing",
             "artifactDirectory": str(self.settings.artifact_host_directory or self.settings.artifact_directory),
             "importRoots": [str(path) for path in self.settings.import_host_roots],
             "imageVersion": os.environ.get("REMARKABLE_IMAGE_VERSION", "host"),
-            "message": "Markdown-to-PDF rendering is available; live simple upload remains experimental",
+            "message": "Markdown-to-PDF publishing is available when a device credential is configured",
         }
 
     def _render(self, markdown_text: str | None, file_path: str | None) -> RenderedArtifact:
@@ -65,7 +62,7 @@ class RemarkableTools:
             raise ValueError("provide exactly one of markdownText or filePath")
         return self.artifacts.render_markdown(markdown_text) if markdown_text is not None else self.artifacts.render_markdown_file(Path(file_path or ""))
 
-    def upload_markdown(self, *, title: str, markdown_text: str | None = None, file_path: str | None = None, dry_run: bool = True, confirm_upload: bool = False) -> dict[str, Any]:
+    def upload_markdown(self, *, title: str, markdown_text: str | None = None, file_path: str | None = None) -> dict[str, Any]:
         try:
             requested_title = title.strip()
             if not requested_title:
@@ -75,19 +72,13 @@ class RemarkableTools:
             return _failure("input", "invalid-publish-request", str(error))
         key = publish_key(requested_title, artifact.sha256)
         common = {
-            "backend": "dry-run" if dry_run else "simple-upload",
+            "backend": "simple-upload",
             "title": requested_title,
             "remoteTitle": requested_title,
             "idempotencyKey": key,
             "idempotencyReplay": False,
             **_artifact_dict(artifact),
         }
-        if dry_run:
-            return {"ok": True, **common, "errorStage": None, "errorCode": None, "message": "Markdown rendered as PDF; no upload was attempted"}
-        if not confirm_upload:
-            return _failure("configuration", "confirmation-required", "live upload requires confirmUpload=true after user confirmation", **common)
-        if self.settings.backend != "simple-upload" or not self.settings.experimental_simple_upload:
-            return _failure("configuration", "simple-upload-disabled", "experimental simple upload is disabled", **common)
         if self.live_publisher is None:
             return _failure("configuration", "simple-upload-unavailable", "simple upload publisher is unavailable", **common)
         try:

@@ -3,9 +3,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
-
-from pypdf import PdfReader
+from unittest.mock import Mock, patch
 
 from remarkable_publish.cli import run
 
@@ -18,22 +16,29 @@ class CliTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(json.loads(stdout.getvalue())["ok"])
 
-    def test_upload_renders_markdown_to_pdf_dry_run(self) -> None:
+    def test_upload_has_no_mode_switches_and_publishes_once(self) -> None:
         with TemporaryDirectory() as directory:
             root = Path(directory)
-            imports = root / "imports"
-            imports.mkdir()
-            target = imports / "brief.md"
+            target = root / "brief.md"
             target.write_text("# Brief\n\nHello from Markdown.", encoding="utf-8")
             config = root / "config.toml"
-            config.write_text(f'[publish]\nimport_roots=["{imports}"]\nartifact_directory="{root / "artifacts"}"\nstate_directory="{root / "state"}"\n', encoding="utf-8")
+            config.write_text(f'[publish]\nartifact_directory="{root / "artifacts"}"\nstate_directory="{root / "state"}"\n', encoding="utf-8")
             stdout = io.StringIO()
-            with patch("sys.stdout", stdout):
+            tools = Mock()
+            tools.upload_markdown.return_value = {"ok": True, "artifactMimeType": "application/pdf"}
+            with patch("sys.stdout", stdout), patch(
+                "remarkable_publish.cli.RemarkableTools.from_settings", return_value=tools
+            ):
                 code = run(["--config", str(config), "upload", str(target), "--title", "Brief"])
             result = json.loads(stdout.getvalue())
             self.assertEqual(code, 0)
             self.assertEqual(result["artifactMimeType"], "application/pdf")
-            self.assertGreaterEqual(len(PdfReader(result["artifactPath"]).pages), 1)
+            tools.upload_markdown.assert_called_once_with(
+                markdown_text="# Brief\n\nHello from Markdown.", title="Brief"
+            )
+
+            with self.assertRaises(SystemExit):
+                run(["upload", str(target), "--title", "Brief", "--live"])
 
 
 if __name__ == "__main__":

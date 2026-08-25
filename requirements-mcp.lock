@@ -1,4 +1,4 @@
-# Python runtime dependency constraints for remarkable-codex-mcp:0.2.0.
+# Python runtime dependency constraints for remarkable-codex-mcp:0.3.0.
 # Regenerate deliberately when upgrading the MCP SDK, then rebuild and test both architectures.
 annotated-types==0.8.0
 anyio==4.14.2
