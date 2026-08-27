@@ -11,15 +11,13 @@ Turn Markdown reports, investigation results, and notes into paper-friendly PDFs
 
 ![Animated flow showing Markdown moving through deterministic PDF rendering and idempotent upload to a reMarkable library](docs/assets/publish-flow.svg)
 
-The design stays deliberately narrow:
+The plugin provides:
 
-- one Codex tool: `upload_markdown`
-- one source contract: inline Markdown or one UTF-8 text file
-- one output: a deterministic, content-addressed PDF
-- one explicit intent boundary: every accepted upload call attempts publication
-- local retry suppression, preserved failure artifacts, and sanitized errors
-
-There is no PDF import, notebook conversion, render-only mode, silent format downgrade, or broad workspace mount.
+- natural-language publishing through Codex with `upload_markdown`
+- inline Markdown and UTF-8 text-file input
+- deterministic, content-addressed PDF rendering
+- explicit publication intent for every upload
+- local retry suppression, preserved failure artifacts, and sanitized results
 
 ## Quick start
 
