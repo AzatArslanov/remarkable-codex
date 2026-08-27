@@ -35,4 +35,4 @@ A recognized response must be HTTP 2xx JSON with a non-empty `docID` and a 64-ch
 
 ## Compatibility boundary
 
-The simple-upload endpoint is private, observed behavior—not an official publishing API. The implementation is based on pinned MIT-licensed source evidence recorded in ADR 0004. Protocol drift must fail closed with the rendered PDF preserved.
+The simple-upload endpoint is private, observed behavior—not an official publishing API. This boundary was checked on 2026-08-18 against the [reMarkable Developer Portal](https://developer.remarkable.com/) and [reMarkable importing and exporting documentation](https://support.remarkable.com/articles/Knowledge/importing-and-exporting-files), neither of which documents this endpoint as a public publishing API. The adapter behavior is based on a [pinned MIT-licensed `rmapi-js` source revision](https://github.com/erikbrinkman/rmapi-js/blob/c4dc999c22c62e626d7fc740b44e7f82c0b2469e/src/raw.ts). Protocol drift must fail closed with the rendered PDF preserved.

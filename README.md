@@ -7,7 +7,7 @@
 Turn Markdown reports, investigation results, and notes into paper-friendly PDFs and publish them to your reMarkable library from Codex.
 
 > [!IMPORTANT]
-> This is an unofficial community project. It uses a private, observed reMarkable upload endpoint documented in [ADR 0004](docs/adr/0004-simple-upload.md), not an official public publishing API. Protocol changes can break uploads without notice.
+> This is an unofficial community project. It uses the private, observed reMarkable upload endpoint described in the [compatibility boundary](docs/architecture.md#compatibility-boundary), not an official public publishing API. Protocol changes can break uploads without notice.
 
 ![Animated flow showing Markdown moving through deterministic PDF rendering and idempotent upload to a reMarkable library](docs/assets/publish-flow.svg)
 
