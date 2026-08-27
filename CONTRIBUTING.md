@@ -4,7 +4,7 @@ Thanks for helping make reMarkable publishing from Codex safer and more reliable
 
 ## Before you start
 
-Read the [architecture](docs/architecture.md), [contracts](docs/contracts.md), [security model](docs/security.md), and [roadmap](docs/roadmap.md). Changes involving transport, authentication, document formats, or compatibility also need a dated ADR in `docs/adr/` with primary evidence.
+Read the [architecture](docs/architecture.md), [contracts](docs/contracts.md), and [security model](docs/security.md). Changes involving transport, authentication, document formats, or compatibility also need a dated ADR in `docs/adr/` with primary evidence.
 
 Please open an issue before a large refactor. Security vulnerabilities belong in the private process described in [SECURITY.md](SECURITY.md), not a public issue.
 
@@ -35,11 +35,11 @@ Tests must not access the network, Docker state, or a real reMarkable account. U
 
 ## Change workflow
 
-1. Select one unchecked roadmap item and state its acceptance criterion.
+1. State the concrete acceptance criterion for the change.
 2. Add or update a contract test before changing a transport boundary.
 3. Keep upload transport behind `Publisher` and cross one architectural boundary at a time.
 4. Preserve the publication-only intent boundary, rendered artifacts after failure, sanitized errors, and content-derived idempotency.
-5. Update behavior documentation and the roadmap in the same pull request.
+5. Update affected behavior documentation and ADRs in the same pull request.
 6. Report offline results separately from anything observed against a real cloud account or physical device.
 
 ## Pull request checklist

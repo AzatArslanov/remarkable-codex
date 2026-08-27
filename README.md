@@ -195,11 +195,7 @@ docker build --pull --tag remarkable-codex-mcp:0.3.0 .
 
 GitHub Actions runs linting and all offline tests on Python 3.11, 3.12, 3.13, and 3.14, then builds and smoke-tests the contract-versioned Docker image. All third-party actions are pinned to full commit SHAs and the workflow has read-only repository permissions.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) before changing public behavior. The [roadmap](docs/roadmap.md) separates offline guarantees from real-account and physical-device verification.
-
-## Public repository setup
-
-Maintainers should complete the discoverability, social preview, security, and branch-protection settings in the [public release checklist](docs/public-release.md) when changing repository visibility.
+See [CONTRIBUTING.md](CONTRIBUTING.md) before changing public behavior.
 
 ## License
 

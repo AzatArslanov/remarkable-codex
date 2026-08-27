@@ -14,8 +14,7 @@ Before changing behavior, read:
 2. `docs/architecture.md`
 3. `docs/contracts.md`
 4. `docs/security.md`
-5. `docs/roadmap.md`
-6. `skills/export-summary-to-remarkable/SKILL.md` when changing the agent workflow
+5. `skills/export-summary-to-remarkable/SKILL.md` when changing the agent workflow
 
 ## Non-negotiable constraints
 
@@ -31,11 +30,11 @@ Before changing behavior, read:
 
 ## Change workflow
 
-1. Pick one unchecked roadmap item and state its acceptance criterion.
+1. State the concrete acceptance criterion for the change.
 2. Add or update a contract test before transport implementation.
 3. Make the smallest change that crosses one architectural boundary at a time.
 4. Run all local checks documented in `README.md`.
-5. Update docs and the roadmap in the same change when behavior or assumptions move.
+5. Update affected docs and ADRs in the same change when behavior or assumptions move.
 6. Report what remains unverified against real hardware/cloud separately from automated results.
 
 ## Definition of done
@@ -48,7 +47,7 @@ A change is done when its public behavior is tested, failures are classified, se
 - `skills/`: agent-facing workflow and backend selection guidance
 - `src/remarkable_publish/`: CLI, application service, domain types, and adapters
 - `tests/`: offline contract and unit tests
-- `docs/`: decisions, contracts, security model, and delivery roadmap
+- `docs/`: decisions, contracts, security model, and supporting assets
 - `scripts/`: repository maintenance helpers only; production logic belongs in `src/`
 
 ## Decision policy
