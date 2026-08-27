@@ -15,7 +15,7 @@ When Codex defers plugin tools, the workflow must perform one exact `upload_mark
 Inputs: exactly one of `markdownText` or `filePath`, plus `title`. The operation has no render-only, mode-selection, or confirmation parameters; invoking it is explicit publication intent.
 
 - `markdownText` is used verbatim as the Markdown source.
-- `filePath` may identify any regular file readable by the host launcher. No configured import root is required. The broker rejects final-component symlinks, non-regular files, unreadable files, and files larger than 10 MB before forwarding the call. It copies only the requested bytes to a mode-`0600` file in private ephemeral staging, forwards only an opaque `/imports/0` path, and deletes the staged source after the matching response or call exit. The file extension does not select behavior; its contents are decoded strictly as UTF-8 Markdown inside the container.
+- `filePath` may identify any regular file readable by the host launcher. No configured import root is required. The broker rejects dual-source requests, final-component symlinks, non-regular files, unreadable files, and files larger than 10 MB before forwarding the call. It copies only the requested bytes to a mode-`0600` file in private ephemeral staging, forwards only an opaque `/imports/0` path, and deletes the staged source after the matching response or call exit. The file extension does not select behavior; its contents are decoded strictly as UTF-8 Markdown inside the container.
 - Empty input and input larger than 10 MB are rejected.
 - Common directional arrows are rendered with the PDF Symbol font. Other source characters unavailable in the renderer font set are rejected with code points only; document content is not echoed.
 - HTTP(S) and mailto Markdown links are rendered as PDF links. Unsupported link schemes remain literal text.
@@ -31,7 +31,7 @@ Stable stages include `input`, `configuration`, `authentication`, `upload`, and 
 
 Failure results remain locally generated and include the preserved artifact fields whenever rendering completed.
 
-Host staging failures use stage `input` and code `invalid-publish-request`. They contain no source path or document content and mean no container publication was attempted.
+Host source-validation and staging failures use stage `input` and code `invalid-publish-request`. They contain no source path or document content and mean no container publication was attempted.
 
 Docker startup and internal MCP response-correlation failures use stage `configuration` and the codes `docker-launch-failed` and `docker-protocol-failed`. Their messages are locally generated, contain no subprocess details or document content, and never claim delivery. Because a lost response cannot prove whether transport started, `docker-protocol-failed` includes `deliveryStatus=unknown` and `retrySafe=false`; callers must not retry it automatically.
 

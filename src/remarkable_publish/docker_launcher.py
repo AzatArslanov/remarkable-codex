@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
 import errno
 import json
 import os
-from pathlib import Path
-from queue import Empty, Queue
 import stat
 import subprocess
 import sys
+from collections.abc import Callable
+from contextlib import suppress
+from dataclasses import dataclass
+from pathlib import Path
+from queue import Empty, Queue
 from tempfile import TemporaryDirectory, gettempdir
 from threading import Lock, Thread
 from time import monotonic
-from typing import Callable
 from uuid import uuid4
-
 
 DEFAULT_IMAGE = "remarkable-codex-mcp:0.3.0"
 DEFAULT_STATE_VOLUME = "remarkable-publish-state-v1"
@@ -203,7 +203,14 @@ class FilePathBroker:
         if not isinstance(arguments, dict):
             return BrokerDecision(forward=line)
         raw_path = arguments.get("filePath")
-        if not isinstance(raw_path, str) or arguments.get("markdownText") is not None:
+        if isinstance(raw_path, str) and arguments.get("markdownText") is not None:
+            return BrokerDecision(
+                response=self._failure_response(
+                    request.get("id"),
+                    "provide exactly one of markdownText or filePath",
+                )
+            )
+        if not isinstance(raw_path, str):
             return BrokerDecision(forward=line)
         request_id = request.get("id")
         try:
@@ -433,10 +440,8 @@ def _matching_response(output: bytes, request_id: object) -> bytes | None:
 
 def _stop_process(process: subprocess.Popen[bytes]) -> None:
     if process.stdin is not None and not process.stdin.closed:
-        try:
+        with suppress(OSError):
             process.stdin.close()
-        except OSError:
-            pass
     if process.poll() is not None:
         return
     try:

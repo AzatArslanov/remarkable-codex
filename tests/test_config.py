@@ -1,8 +1,10 @@
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from remarkable_publish.config import load_settings
+
+
 class ConfigTests(unittest.TestCase):
     def test_defaults_have_no_publish_mode(self) -> None:
         settings = load_settings(Path("definitely-missing.toml"))

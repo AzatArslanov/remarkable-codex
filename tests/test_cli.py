@@ -1,8 +1,8 @@
 import io
 import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 from unittest.mock import Mock, patch
 
 from remarkable_publish.cli import run

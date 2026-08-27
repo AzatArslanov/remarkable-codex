@@ -10,11 +10,28 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Azat Arslanov" }]
+keywords = ["remarkable", "codex", "markdown", "pdf", "mcp"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Office/Business",
+]
 dependencies = ["pypdf==6.14.2", "reportlab==4.4.9"]
 
 [project.optional-dependencies]
-dev = []
+dev = ["ruff==0.16.4"]
 mcp = ["mcp==1.27.2"]
+
+[project.urls]
+Homepage = "https://github.com/AzatArslanov/remarkable-codex"
+Documentation = "https://github.com/AzatArslanov/remarkable-codex#readme"
+Issues = "https://github.com/AzatArslanov/remarkable-codex/issues"
+Repository = "https://github.com/AzatArslanov/remarkable-codex"
 
 [project.scripts]
 remarkable-publish = "remarkable_publish.cli:main"
@@ -27,3 +44,6 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM"]

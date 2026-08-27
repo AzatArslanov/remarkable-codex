@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import tomllib
+from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True, slots=True)
@@ -12,7 +12,6 @@ class Settings:
     artifact_host_directory: Path | None = None
     state_directory: Path = Path(".remarkable-state")
     import_roots: tuple[Path, ...] = ()
-    import_host_roots: tuple[Path, ...] = ()
 
 
 def load_settings(path: Path | None) -> Settings:
@@ -45,11 +44,9 @@ def _paths_from_env(name: str) -> tuple[Path, ...] | None:
 
 def _environment_settings(base: Settings) -> Settings:
     import_roots = _paths_from_env("REMARKABLE_IMPORT_ROOTS")
-    import_host_roots = _paths_from_env("REMARKABLE_IMPORT_HOST_ROOTS")
     return Settings(
         artifact_directory=Path(os.environ.get("REMARKABLE_ARTIFACT_DIR", str(base.artifact_directory))),
         artifact_host_directory=Path(os.environ["REMARKABLE_ARTIFACT_HOST_DIR"]) if os.environ.get("REMARKABLE_ARTIFACT_HOST_DIR") else base.artifact_host_directory,
         state_directory=Path(os.environ.get("REMARKABLE_STATE_DIR", str(base.state_directory))),
         import_roots=import_roots if import_roots is not None else base.import_roots,
-        import_host_roots=import_host_roots if import_host_roots is not None else base.import_host_roots,
     )

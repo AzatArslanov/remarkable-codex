@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
-from pathlib import Path
 import tomllib
+from pathlib import Path
 
 from . import __version__
 from .artifacts import read_markdown_file

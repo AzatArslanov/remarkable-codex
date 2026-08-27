@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from contextlib import closing, contextmanager
-from dataclasses import dataclass
 import fcntl
-from pathlib import Path
 import os
 import sqlite3
-from typing import Iterator
+from collections.abc import Iterator
+from contextlib import closing, contextmanager
+from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True, slots=True)
