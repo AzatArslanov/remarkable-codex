@@ -1,0 +1,40 @@
+{
+  "name": "remarkable-codex",
+  "version": "0.3.0+codex.20260827141734",
+  "description": "Render Markdown as PDF and upload it to the reMarkable library.",
+  "author": {
+    "name": "Azat Arslanov",
+    "url": "https://github.com/AzatArslanov"
+  },
+  "homepage": "https://github.com/AzatArslanov/remarkable-codex",
+  "repository": "https://github.com/AzatArslanov/remarkable-codex",
+  "license": "MIT",
+  "keywords": [
+    "remarkable",
+    "codex",
+    "markdown",
+    "pdf",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "reMarkable Publisher",
+    "shortDescription": "Publish Markdown to reMarkable.",
+    "longDescription": "Renders Markdown as a paper-friendly PDF and publishes it through the plugin's bundled reMarkable MCP server with idempotent retry handling.",
+    "developerName": "Azat Arslanov",
+    "category": "Productivity",
+    "websiteURL": "https://github.com/AzatArslanov/remarkable-codex",
+    "brandColor": "#2F5D50",
+    "capabilities": [
+      "Markdown-to-PDF rendering",
+      "Idempotent library upload",
+      "reMarkable export"
+    ],
+    "defaultPrompt": [
+      "Publish this Markdown to my reMarkable.",
+      "Export these notes to my reMarkable library.",
+      "Send this Markdown file to my reMarkable library."
+    ]
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Export Markdown to reMarkable"
+  short_description: "Render Markdown and publish it to reMarkable"
+  default_prompt: "Use $export-summary-to-remarkable to upload this Markdown to my reMarkable library."
