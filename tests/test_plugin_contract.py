@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import re
 import tomllib
 import unittest
+from pathlib import Path
 
 from remarkable_publish import __version__
 from remarkable_publish.docker_launcher import DEFAULT_IMAGE
-
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_VERSION = "0.3.0"
@@ -22,6 +22,19 @@ class PluginContractTests(unittest.TestCase):
         self.assertEqual(manifest["mcpServers"], "./.mcp.json")
         self.assertNotIn("apps", manifest)
         self.assertNotIn("hooks", manifest)
+
+    def test_manifest_has_public_discovery_metadata_without_private_contact_data(self) -> None:
+        manifest = json.loads((ROOT / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(
+            manifest["repository"],
+            "https://github.com/AzatArslanov/remarkable-codex",
+        )
+        self.assertEqual(manifest["homepage"], manifest["repository"])
+        self.assertEqual(manifest["license"], "MIT")
+        self.assertIn("remarkable", manifest["keywords"])
+        self.assertIn("markdown", manifest["keywords"])
+        self.assertNotIn("email", manifest["author"])
 
     def test_bundled_mcp_uses_plugin_relative_launcher_without_secrets(self) -> None:
         config = json.loads((ROOT / ".mcp.json").read_text(encoding="utf-8"))
@@ -68,6 +81,27 @@ class PluginContractTests(unittest.TestCase):
         self.assertIn(f"REMARKABLE_IMAGE_VERSION={CONTRACT_VERSION}", dockerfile)
         self.assertIn(f"remarkable-codex-mcp:{CONTRACT_VERSION}", readme)
         self.assertNotIn("remarkable-codex-mcp:0.2.0", readme)
+
+    def test_public_release_docs_and_ci_are_present(self) -> None:
+        for path in ("CONTRIBUTING.md", "SECURITY.md"):
+            self.assertTrue((ROOT / path).is_file(), path)
+
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("## Quick start", readme)
+        self.assertIn("## How it works", readme)
+        self.assertIn("## Security and compatibility", readme)
+
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        self.assertIn(f"remarkable-codex-mcp:{CONTRACT_VERSION}", workflow)
+        self.assertNotIn("remarkable-codex-mcp:0.2.0", workflow)
+        action_references = re.findall(
+            r"^[ \t]*- uses: ([^\s]+)(?:[ \t]+#.*)?$",
+            workflow,
+            re.MULTILINE,
+        )
+        self.assertTrue(action_references)
+        for reference in action_references:
+            self.assertRegex(reference, r"^[^@]+@[0-9a-f]{40}$")
 
 
 if __name__ == "__main__":

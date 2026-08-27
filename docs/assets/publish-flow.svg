@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="250" viewBox="0 0 920 250" role="img" aria-labelledby="title description">
+  <title id="title">Markdown publishing workflow</title>
+  <desc id="description">An animated four-step flow from Markdown through private staging and PDF rendering to an idempotent reMarkable library upload.</desc>
+  <style>
+    :root { color-scheme: light dark; }
+    .background { fill: #f5f2ea; }
+    .card { fill: #fffdf8; stroke: #2f5d50; stroke-width: 2; }
+    .label { fill: #17372e; font: 700 17px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+    .detail { fill: #51645d; font: 13px ui-sans-serif, system-ui, sans-serif; text-anchor: middle; }
+    .icon { fill: none; stroke: #2f5d50; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    .flow { fill: none; stroke: #ba8f54; stroke-width: 4; stroke-dasharray: 10 9; animation: move 1.2s linear infinite; }
+    .card-group { transform-origin: center; animation: pulse 4.8s ease-in-out infinite; }
+    .step-2 { animation-delay: 1.2s; }
+    .step-3 { animation-delay: 2.4s; }
+    .step-4 { animation-delay: 3.6s; }
+    .check { fill: none; stroke: #2f5d50; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 50; stroke-dashoffset: 50; animation: check 4.8s ease-out infinite; animation-delay: 3.5s; }
+    @keyframes move { to { stroke-dashoffset: -38; } }
+    @keyframes pulse { 0%, 18%, 100% { opacity: .72; transform: scale(1); } 7%, 12% { opacity: 1; transform: scale(1.035); } }
+    @keyframes check { 0%, 75% { stroke-dashoffset: 50; } 86%, 100% { stroke-dashoffset: 0; } }
+    @media (prefers-color-scheme: dark) {
+      .background { fill: #17201d; }
+      .card { fill: #202d29; stroke: #8dc4b2; }
+      .label { fill: #e5f1ed; }
+      .detail { fill: #b9cac4; }
+      .icon, .check { stroke: #8dc4b2; }
+      .flow { stroke: #d7ad72; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .flow, .card-group, .check { animation: none; }
+      .check { stroke-dashoffset: 0; }
+    }
+  </style>
+  <rect class="background" width="920" height="250" rx="22"/>
+  <path class="flow" d="M205 108 H274 M425 108 H494 M645 108 H714"/>
+
+  <g class="card-group step-1">
+    <rect class="card" x="35" y="38" width="170" height="144" rx="18"/>
+    <path class="icon" d="M93 66 H143 L157 80 V122 H93 Z M143 66 V81 H157 M108 94 H142 M108 107 H134"/>
+    <text class="label" x="120" y="149">Markdown</text>
+    <text class="detail" x="120" y="169">text or one file</text>
+  </g>
+
+  <g class="card-group step-2">
+    <rect class="card" x="255" y="38" width="170" height="144" rx="18"/>
+    <path class="icon" d="M307 79 H373 V123 H307 Z M319 79 V68 H361 V79 M324 94 H356 M324 107 H348"/>
+    <text class="label" x="340" y="149">Private stage</text>
+    <text class="detail" x="340" y="169">requested bytes only</text>
+  </g>
+
+  <g class="card-group step-3">
+    <rect class="card" x="475" y="38" width="170" height="144" rx="18"/>
+    <path class="icon" d="M528 66 H574 L592 84 V124 H528 Z M574 66 V85 H592 M541 101 H578 M541 113 H570"/>
+    <text class="label" x="560" y="149">PDF render</text>
+    <text class="detail" x="560" y="169">deterministic + saved</text>
+  </g>
+
+  <g class="card-group step-4">
+    <rect class="card" x="695" y="38" width="190" height="144" rx="18"/>
+    <path class="icon" d="M742 116 H833 M753 116 V87 H822 V116 M766 87 V74 H809 V87"/>
+    <path class="check" d="M766 101 L778 111 L801 91"/>
+    <text class="label" x="790" y="149">reMarkable</text>
+    <text class="detail" x="790" y="169">idempotent library upload</text>
+  </g>
+
+  <text class="detail" x="460" y="220">explicit intent • hardened container • sanitized result</text>
+</svg>

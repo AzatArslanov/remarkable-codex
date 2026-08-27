@@ -1,6 +1,6 @@
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from remarkable_publish.credentials import CredentialStore
 from remarkable_publish.domain import LivePublishRequest, RenderedArtifact

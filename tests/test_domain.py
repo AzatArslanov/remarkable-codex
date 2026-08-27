@@ -1,5 +1,5 @@
-from hashlib import sha256
 import unittest
+from hashlib import sha256
 
 from remarkable_publish.domain import publish_key
 

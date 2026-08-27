@@ -3,27 +3,46 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  python:
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install -e .
-      - run: python -m unittest discover -s tests -v
-      - run: python -m compileall -q src tests scripts
+          cache: pip
+      - name: Install package and development checks
+        run: python -m pip install -e '.[dev]'
+      - name: Lint
+        run: ruff check --output-format=github .
+      - name: Run offline tests
+        run: python -m unittest discover -s tests -v
+      - name: Compile all Python sources
+        run: python -m compileall -q src tests
 
   image:
+    name: Docker image
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - run: docker build --tag remarkable-codex-mcp:0.2.0 .
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Build the contract-versioned image
+        run: docker build --pull --tag remarkable-codex-mcp:0.3.0 .
+      - name: Verify the image entry points
+        run: docker run --rm remarkable-codex-mcp:0.3.0 remarkable-publish --version

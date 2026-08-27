@@ -1,7 +1,7 @@
-from pathlib import Path
 import stat
-from tempfile import TemporaryDirectory
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from remarkable_publish.credentials import CredentialStore
 from remarkable_publish.state import IdempotencyLedger

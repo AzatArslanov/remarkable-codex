@@ -1,9 +1,9 @@
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import json
 import os
 import sys
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from remarkable_publish.docker_launcher import (
@@ -566,6 +566,37 @@ for line in sys.stdin:
             self.assertIsNone(decision.forward)
             failure = json.loads(decision.response)["result"]["structuredContent"]
             self.assertIn("10 MB", failure["message"])
+            self.assertEqual(list(staging.iterdir()), [])
+
+    def test_file_path_broker_rejects_dual_sources_without_forwarding_private_data(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            staging = root / "staging"
+            staging.mkdir(mode=0o700)
+            source = root / "private report.md"
+            source.write_text("DO-NOT-FORWARD", encoding="utf-8")
+            broker = FilePathBroker(staging)
+            request = {
+                "jsonrpc": "2.0",
+                "id": "dual-source",
+                "method": "tools/call",
+                "params": {
+                    "name": "upload_markdown",
+                    "arguments": {
+                        "title": "Private",
+                        "filePath": str(source),
+                        "markdownText": "PRIVATE-INLINE-BODY",
+                    },
+                },
+            }
+
+            decision = broker.handle_client_line((json.dumps(request) + "\n").encode())
+
+            self.assertIsNone(decision.forward)
+            failure = json.loads(decision.response)["result"]["structuredContent"]
+            self.assertEqual(failure["errorCode"], "invalid-publish-request")
+            self.assertNotIn(str(source), decision.response.decode())
+            self.assertNotIn("PRIVATE-INLINE-BODY", decision.response.decode())
             self.assertEqual(list(staging.iterdir()), [])
 
     def test_inline_markdown_and_unrelated_protocol_messages_pass_through(self) -> None:

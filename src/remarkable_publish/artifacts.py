@@ -1,12 +1,12 @@
 from __future__ import annotations
 
+import os
+import re
+import stat
 from hashlib import sha256
 from html import escape
 from io import BytesIO
-import os
 from pathlib import Path
-import re
-import stat
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlsplit
 
@@ -19,10 +19,18 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen.canvas import Canvas
-from reportlab.platypus import ListFlowable, ListItem, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle, XPreformatted
+from reportlab.platypus import (
+    ListFlowable,
+    ListItem,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+    XPreformatted,
+)
 
 from .domain import RenderedArtifact
-
 
 PDF_MIME = "application/pdf"
 MAX_MARKDOWN_BYTES = 10 * 1024 * 1024
@@ -239,12 +247,15 @@ def read_markdown_file(path: Path) -> str:
 
 
 class ArtifactStore:
-    def __init__(self, root: Path, *, host_root: Path | None = None, import_roots: tuple[Path, ...] = (), import_host_roots: tuple[Path, ...] = ()) -> None:
-        if import_host_roots and len(import_host_roots) != len(import_roots):
-            raise ValueError("host and container import roots must have the same length")
+    def __init__(
+        self,
+        root: Path,
+        *,
+        host_root: Path | None = None,
+        import_roots: tuple[Path, ...] = (),
+    ) -> None:
         self.root, self.host_root = root, host_root or root
         self.import_roots = tuple(path.resolve() for path in import_roots)
-        self.import_host_roots = tuple(path.resolve() for path in import_host_roots)
 
     def _metadata(self, path: Path) -> RenderedArtifact:
         digest = sha256(path.read_bytes()).hexdigest()
@@ -257,7 +268,8 @@ class ArtifactStore:
             raise
         except Exception as error:
             raise ValueError("Markdown could not be rendered") from error
-        self.root.mkdir(parents=True, exist_ok=True)
+        self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+        os.chmod(self.root, 0o700)
         with NamedTemporaryFile(dir=self.root, prefix=".incoming-", suffix=".pdf", delete=False) as handle:
             temporary = Path(handle.name)
             handle.write(pdf)
@@ -271,17 +283,8 @@ class ArtifactStore:
         finally:
             temporary.unlink(missing_ok=True)
 
-    def _map_host_import(self, path: Path) -> Path:
-        if not self.import_host_roots:
-            return path
-        candidate = path.expanduser().resolve()
-        for host_root, container_root in zip(self.import_host_roots, self.import_roots):
-            if candidate.is_relative_to(host_root):
-                return container_root / candidate.relative_to(host_root)
-        return path
-
     def render_markdown_file(self, path: Path) -> RenderedArtifact:
-        candidate = self._map_host_import(path).expanduser().resolve()
+        candidate = path.expanduser().resolve()
         if not any(candidate.is_relative_to(root) for root in self.import_roots):
             raise ValueError(
                 "Markdown path is outside the approved import roots; if the source content is "

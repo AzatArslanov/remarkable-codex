@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import os
+import stat
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import os
-import unittest
 
 from pypdf import PdfReader
 
-from remarkable_publish.artifacts import ArtifactStore, PDF_MIME, read_markdown_file
+from remarkable_publish.artifacts import PDF_MIME, ArtifactStore, read_markdown_file
 
 
 class ArtifactTests(unittest.TestCase):
@@ -27,6 +28,14 @@ class ArtifactTests(unittest.TestCase):
             self.assertEqual(first.mime_type, PDF_MIME)
             self.assertEqual(first.host_path, Path("/host/artifacts") / f"{first.artifact_id}.pdf")
             self.assertGreaterEqual(len(PdfReader(first.internal_path).pages), 1)
+
+    def test_artifact_directory_permissions_are_restricted(self) -> None:
+        with TemporaryDirectory() as directory:
+            root = Path(directory) / "artifacts"
+
+            ArtifactStore(root).render_markdown("# Private report")
+
+            self.assertEqual(stat.S_IMODE(root.stat().st_mode), 0o700)
 
     def test_supported_markdown_link_creates_a_pdf_link_annotation(self) -> None:
         with TemporaryDirectory() as directory:

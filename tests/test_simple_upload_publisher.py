@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import base64
 import json
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import unittest
 
 from remarkable_publish.domain import LivePublishRequest, RenderedArtifact
 from remarkable_publish.simple_upload import HttpResponse, SimpleUploadPublisher

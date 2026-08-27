@@ -8,7 +8,6 @@ from uuid import uuid4
 
 from .credentials import CredentialStore
 
-
 AUTH_HOST = "https://webapp-prod.cloud.remarkable.engineering"
 
 

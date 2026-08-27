@@ -54,3 +54,13 @@ One-shot response acceptance: after sending the private MCP handshake and public
 Acceptance: a representative multi-page investigation with a table and common directional arrows renders deterministically without source rewriting, and unsupported glyphs still fail closed.
 
 File staging acceptance: `filePath` accepts any host-readable regular file without a configured path allowlist; only that file is copied into an ephemeral private directory mounted read-only into the container; the original host path and document body do not enter command arguments, environment variables, diagnostics, or failure results; and staged content is removed after the matching MCP response or call exit. Final-component symlinks, non-regular files, and sources over 10 MB fail before container publication.
+
+## Public release baseline
+
+- [x] Remove confirmed dead compatibility code and audit tracked content plus reachable history for private data
+- [x] Add complete source-install, authentication, Codex usage, standalone CLI, operations, and contribution guidance
+- [x] Add accessible animated project presentation and public discovery metadata
+- [x] Add least-privilege, full-SHA-pinned GitHub Actions checks for supported Python versions and the contract-versioned Docker image
+- [x] Add community contribution, vulnerability reporting, and repository-settings guidance
+
+Acceptance: a fresh user can understand the unofficial compatibility boundary, install from the documented personal-marketplace layout, authenticate without putting a pairing code in arguments or configuration, and publish from a new Codex task. CI reproduces every offline check on Python 3.11 through 3.14, builds and smoke-tests `remarkable-codex-mcp:0.3.0`, and uses read-only permissions with immutable action references. Committed content contains no credential, personal filesystem path, private document, generated PDF, or stale host-import compatibility layer; the README animation has descriptive alternative text and a reduced-motion fallback. Real-account and physical-device verification remain explicit, separate gates.

@@ -6,7 +6,6 @@ from .config import load_settings
 from .docker_launcher import UPLOAD_TOOL_DESCRIPTION
 from .mcp_tools import RemarkableTools, tool_contracts
 
-
 _active_tools: RemarkableTools | None = None
 
 

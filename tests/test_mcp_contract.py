@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import inspect
+import time
+import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Barrier, Lock, Thread
-import time
-import unittest
 
 from remarkable_publish.artifacts import ArtifactStore
 from remarkable_publish.config import Settings
@@ -17,8 +17,6 @@ from remarkable_publish.state import IdempotencyLedger, StateFailure
 
 
 class FakePublisher:
-    name = "simple-upload"
-
     def __init__(self, *, fail: bool = False) -> None:
         self.fail = fail
         self.requests = []

@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import base64
-from dataclasses import dataclass
 import json
 import re
-from typing import Mapping, Protocol
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, build_opener
 
 from .domain import LivePublishOutcome, LivePublishRequest
 from .private_auth import AuthenticationFailure, NoRedirect
-
 
 UPLOAD_URL = "https://internal.cloud.remarkable.com/doc/v2/files"
 _HASH = re.compile(r"^[0-9a-f]{64}$")
@@ -50,8 +50,6 @@ class UrllibSimpleUploadTransport:
 
 
 class SimpleUploadPublisher:
-    name = "simple-upload"
-
     def __init__(self, tokens: TokenProvider, transport: HttpTransport) -> None:
         self.tokens = tokens
         self.transport = transport

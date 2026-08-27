@@ -7,8 +7,8 @@ from typing import Any
 from .artifacts import ArtifactStore
 from .config import Settings
 from .credentials import CredentialStore
-from .domain import LivePublishRequest, RenderedArtifact, publish_key
 from .docker_launcher import UPLOAD_TOOL_ANNOTATIONS, UPLOAD_TOOL_NAME
+from .domain import LivePublishRequest, RenderedArtifact, publish_key
 from .ports import LivePublisher
 from .private_auth import PrivateAuthHttp, UserTokenProvider
 from .simple_upload import SimpleUploadPublisher, UrllibSimpleUploadTransport
@@ -39,8 +39,12 @@ class RemarkableTools:
         self.ledger, self.live_publisher = ledger, live_publisher
 
     @classmethod
-    def from_settings(cls, settings: Settings, *, artifacts: ArtifactStore | None = None) -> "RemarkableTools":
-        store = artifacts or ArtifactStore(settings.artifact_directory, host_root=settings.artifact_host_directory, import_roots=settings.import_roots, import_host_roots=settings.import_host_roots)
+    def from_settings(cls, settings: Settings, *, artifacts: ArtifactStore | None = None) -> RemarkableTools:
+        store = artifacts or ArtifactStore(
+            settings.artifact_directory,
+            host_root=settings.artifact_host_directory,
+            import_roots=settings.import_roots,
+        )
         credentials = CredentialStore(settings.state_directory)
         publisher = SimpleUploadPublisher(UserTokenProvider(credentials, PrivateAuthHttp()), UrllibSimpleUploadTransport())
         return cls(settings=settings, artifacts=store, credentials=credentials, ledger=IdempotencyLedger(settings.state_directory / "state.sqlite3"), live_publisher=publisher)
@@ -52,7 +56,6 @@ class RemarkableTools:
             "authenticated": self.credentials.is_authenticated,
             "markdownUpload": "available" if self.credentials.is_authenticated else "credential-missing",
             "artifactDirectory": str(self.settings.artifact_host_directory or self.settings.artifact_directory),
-            "importRoots": [str(path) for path in self.settings.import_host_roots],
             "imageVersion": os.environ.get("REMARKABLE_IMAGE_VERSION", "host"),
             "message": "Markdown-to-PDF publishing is available when a device credential is configured",
         }
