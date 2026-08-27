@@ -34,7 +34,7 @@ Before changing behavior, read:
 2. Add or update a contract test before transport implementation.
 3. Make the smallest change that crosses one architectural boundary at a time.
 4. Run all local checks documented in `README.md`.
-5. Update affected docs and ADRs in the same change when behavior or assumptions move.
+5. Update affected docs in the same change when behavior or assumptions move.
 6. Report what remains unverified against real hardware/cloud separately from automated results.
 
 ## Definition of done
@@ -47,9 +47,9 @@ A change is done when its public behavior is tested, failures are classified, se
 - `skills/`: agent-facing workflow and backend selection guidance
 - `src/remarkable_publish/`: CLI, application service, domain types, and adapters
 - `tests/`: offline contract and unit tests
-- `docs/`: decisions, contracts, security model, and supporting assets
+- `docs/`: architecture, contracts, security model, and supporting assets
 - `scripts/`: repository maintenance helpers only; production logic belongs in `src/`
 
-## Decision policy
+## Documentation policy
 
-Record choices that affect transports, authentication, document formats, or compatibility as an ADR under `docs/adr/`. Prefer evidence from reMarkable documentation or the source repository of a third-party tool. Include the date checked because the integration landscape changes.
+Keep transport, authentication, document-format, and compatibility decisions current in `docs/architecture.md`, `docs/contracts.md`, or `docs/security.md`. Prefer evidence from reMarkable documentation or the source repository of a third-party tool. Include the date checked because the integration landscape changes.
